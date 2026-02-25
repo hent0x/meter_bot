@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Учёт показаний</title>
+    <!-- Подключаем Telegram Web App API -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Заголовок -->
+        <header id="header" class="hidden">
+            <button id="back-btn" class="nav-btn hidden">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <h1 id="screen-title" class="centered">Учёт показаний</h1>
+        </header>
+
+        <!-- Контейнер для экранов -->
+        <main id="main-content">
+            <!-- Экраны будут добавляться сюда динамически через JS -->
+        </main>
+
+        <!-- Нижний таб-бар -->
+        <nav id="bottom-nav">
+            <button class="tab-btn active" data-tab="readings">
+                <div class="tab-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V13H17V17Z"/>
+                    </svg>
+                </div>
+                <div class="tab-label">Показания</div>
+            </button>
+            <button class="tab-btn" data-tab="tenants">
+                <div class="tab-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
+                    </svg>
+                </div>
+                <div class="tab-label">Арендаторы</div>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Шаблоны кнопок/экранов генерируются в app.js -->
+    <script src="app.js"></script>
+</body>
+</html>
