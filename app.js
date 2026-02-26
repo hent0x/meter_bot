@@ -42,10 +42,14 @@ const TENANTS = {
         { name: "Пятерочка магазин", section: "Пятерочка магазин", meters: ["gvs", "hvs", "svet", "gaz"] }
     ],
     "Дикси": [
+        { name: "Дикси", section: "Дикси", meters: ["gvs", "hvs", "svet", "gaz"] },
+        { name: "Пиво", section: "Пиво", meters: ["gvs", "hvs", "svet", "gaz"] },
         { name: "Мясо", section: "Мясо (нал)", meters: ["gvs", "hvs", "svet", "gaz"] },
         { name: "Кафе", section: "Кафе (нал)", meters: ["gvs", "hvs", "svet", "gaz"] },
         { name: "Кухня", section: "Кухня (нал)", meters: ["gvs", "hvs", "svet", "gaz"] },
         { name: "ОЗОН", section: "ОЗОН (нал)", meters: ["gvs", "hvs", "svet", "gaz"] },
+        { name: "WB", section: "WB", meters: ["gvs", "hvs", "svet", "gaz"] },
+        { name: "КБ", section: "КБ", meters: ["gvs", "hvs", "svet", "gaz"] },
         { name: "ШИНКА", section: "ШИНКА (Рафаилова)", meters: ["gvs", "hvs", "svet", "gaz"] },
         { name: "Вода будка", section: "Вода будка (нал)", meters: ["gvs", "hvs", "svet", "gaz"] }
     ],
@@ -53,7 +57,9 @@ const TENANTS = {
     "Спортмастер": [],
     "Вкусвилл": [
         { name: "Вкусвилл", section: "Вкусвилл", meters: ["gvs", "hvs", "svet", "gaz"] },
-        { name: "общий озонL + вкусвил", section: "общий озонл + вкусвил", meters: ["gvs", "hvs", "svet", "gaz"] }
+        { name: "ОЗОН", section: "ОЗОН", meters: ["gvs", "hvs", "svet", "gaz"] },
+        { name: "общий озонL + вкусвил", section: "общий озонл + вкусвил", meters: ["gvs", "hvs", "svet", "gaz"] },
+        { name: "Вода", section: "вода", meters: ["gvs", "hvs", "svet", "gaz"] }
     ],
 };
 
