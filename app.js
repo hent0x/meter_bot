@@ -292,8 +292,41 @@ function renderInputMenu(container, params) {
     title.className = "input-screen-title";
     title.innerText = "Внесите показания";
 
+    // --- Поле периода ---
+    const periodGroup = document.createElement("div");
+    periodGroup.className = "input-group";
+    periodGroup.style.marginBottom = "16px";
+
+    const periodLabel = document.createElement("label");
+    periodLabel.className = "input-label";
+    periodLabel.innerText = "📅 Период (месяц 01–12)";
+    periodLabel.style.display = "block";
+    periodLabel.style.marginBottom = "6px";
+    periodLabel.style.color = "var(--hint-color)";
+    periodLabel.style.fontSize = "13px";
+
+    const periodInput = document.createElement("input");
+    periodInput.type = "number";
+    periodInput.className = "input-field";
+    periodInput.placeholder = "Введите номер месяца (01–12)";
+    periodInput.min = "1";
+    periodInput.max = "12";
+    periodInput.step = "1";
+
+    periodGroup.appendChild(periodLabel);
+    periodGroup.appendChild(periodInput);
+
+    // --- Поле показания ---
     const inputGroup = document.createElement("div");
     inputGroup.className = "input-group";
+
+    const valueLabel = document.createElement("label");
+    valueLabel.className = "input-label";
+    valueLabel.innerText = `🔩 Показания (${meter.unit})`;
+    valueLabel.style.display = "block";
+    valueLabel.style.marginBottom = "6px";
+    valueLabel.style.color = "var(--hint-color)";
+    valueLabel.style.fontSize = "13px";
 
     const input = document.createElement("input");
     input.type = "number";
@@ -301,65 +334,67 @@ function renderInputMenu(container, params) {
     input.placeholder = `Введите показания (${meter.unit})`;
     input.step = "any";
 
-    // Декоративные кнопки
-    const stepperWrapper = document.createElement("div");
-    stepperWrapper.className = "stepper-btns";
-    stepperWrapper.innerHTML = `
-        <button class="stepper-btn">▲</button>
-        <button class="stepper-btn">▼</button>
-    `;
-
-    const actionBtn = document.createElement("div");
-    actionBtn.className = "action-icon";
-
+    inputGroup.appendChild(valueLabel);
     inputGroup.appendChild(input);
-    inputGroup.appendChild(stepperWrapper);
-    inputGroup.appendChild(actionBtn);
 
     wrapper.appendChild(title);
+    wrapper.appendChild(periodGroup);
     wrapper.appendChild(inputGroup);
 
     container.appendChild(wrapper);
 
-    // Telegram Main Button
+    // --- Telegram Main Button ---
     tg.MainButton.text = "Передать показания";
     tg.MainButton.color = "#000000";
     tg.MainButton.textColor = "#FFFFFF";
+    tg.MainButton.hide();
 
-    input.addEventListener('input', () => {
-        if (input.value.trim() !== '') {
+    function checkReady() {
+        if (input.value.trim() !== '' && periodInput.value.trim() !== '') {
             tg.MainButton.show();
         } else {
             tg.MainButton.hide();
         }
-    });
+    }
 
-    // Сохраняем обработчик, чтобы потом удалить (избегаем дублей)
-    tg.offEvent('mainButtonClicked', _submitHandler);
+    input.addEventListener('input', checkReady);
+    periodInput.addEventListener('input', checkReady);
 
+    // Удаляем старый обработчик ПЕРЕД тем как создать новый
     function _submitHandler() {
         const val = parseFloat(input.value.replace(",", "."));
         if (isNaN(val)) {
-            tg.showAlert("Введите корректное число.");
+            tg.showAlert("Введите корректное число для показаний.");
             return;
         }
+
+        const monthRaw = parseInt(periodInput.value, 10);
+        if (isNaN(monthRaw) || monthRaw < 1 || monthRaw > 12) {
+            tg.showAlert("Введите номер месяца от 01 до 12.");
+            return;
+        }
+
+        const currentYear = new Date().getFullYear();
+        const period = `${String(monthRaw).padStart(2, '0')}.${currentYear}`;
 
         const payload = {
             action: "submit_reading",
             sheet: sheet,
-            tenantName: tenantName,  // null если режим "Показания"
+            tenantName: tenantName || null,
             meterKey: meterKey,
             value: val,
+            period: period,
             source: tenantName ? "tenants" : "readings"
         };
 
+        tg.offEvent('mainButtonClicked', _submitHandler);
         tg.sendData(JSON.stringify(payload));
-        // Разрешаем Telegram закрыть WebApp
-        tg.close();
     }
 
+    tg.offEvent('mainButtonClicked', _submitHandler);
     tg.onEvent('mainButtonClicked', _submitHandler);
 }
 
 // Запуск начального экрана
 navigateTo(renderObjectList, "Учёт показаний", { mode: 'readings' });
+
