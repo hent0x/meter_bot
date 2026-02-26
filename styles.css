@@ -196,67 +196,152 @@ header.hidden {
     text-align: center;
 }
 
-/* Форма */
+/* ─── Экраны ввода ────────────────────────────────────────────────────── */
+.input-container {
+    padding: 8px 0;
+}
+
 .input-screen-title {
     font-size: 22px;
     font-weight: 700;
-    margin: 16px 0 32px 0;
+    margin: 16px 0 8px 0;
+    color: var(--text-color);
 }
 
-.input-group {
-    display: flex;
-    align-items: center;
+.input-hint {
+    font-size: 14px;
+    color: var(--hint-color);
+    margin-bottom: 16px;
+}
+
+/* Карточка с информацией об объекте/счётчике */
+.info-card {
     background: var(--bg-color);
     border-radius: 16px;
-    border: 1px solid var(--divider-color);
-    padding: 10px 16px;
+    padding: 14px 16px;
     margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-}
-
-.input-field {
-    flex: 1;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    color: var(--text-color);
-    outline: none;
-}
-
-/* Скрыть стрелки у number */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-input[type=number] {
-    -moz-appearance: textfield;
-}
-
-.stepper-btns {
     display: flex;
     flex-direction: column;
-    margin: 0 16px;
-    gap: 4px;
+    gap: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-.stepper-btn {
-    background: none;
-    border: none;
+.info-row {
+    font-size: 14px;
     color: var(--hint-color);
-    cursor: pointer;
-    padding: 0 4px;
+    display: flex;
+    gap: 8px;
 }
 
-.action-icon {
-    width: 28px;
-    height: 28px;
-    background-color: #FF3B30;
-    border-radius: 50%;
+.info-row span {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Поле ввода */
+.input-field {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    background: var(--bg-color);
+    font-size: 20px;
+    color: var(--text-color);
+    padding: 16px;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    font-weight: 500;
+}
+
+/* Кнопка «Далее» */
+.btn-primary {
+    width: 100%;
+    background: var(--button-color, #000);
+    color: var(--button-text-color, #FFF);
+    border: none;
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btn-primary:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* Карточка подтверждения */
+.confirm-card {
+    background: var(--bg-color);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.confirm-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--divider-color);
+    gap: 12px;
+}
+
+.confirm-row:last-child {
+    border-bottom: none;
+}
+
+.confirm-row.highlight {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.confirm-label {
+    font-size: 14px;
+    color: var(--hint-color);
+    white-space: nowrap;
+}
+
+.confirm-value {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+    text-align: right;
+}
+
+/* Кнопки Да/Нет */
+.confirm-btn-row {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-yes,
+.btn-no {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btn-yes {
+    background: #000;
+    color: #FFF;
+}
+
+.btn-no {
+    background: var(--secondary-bg-color, #F0F2F5);
+    color: var(--text-color);
+}
+
+.btn-yes:disabled,
+.btn-no:disabled {
+    opacity: 0.5;
+    cursor: default;
 }
 
 /* Tab bar */
@@ -284,7 +369,7 @@ input[type=number] {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #000000;
+    color: #000;
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
@@ -293,7 +378,7 @@ input[type=number] {
 }
 
 .tab-btn.active {
-    color: #000000;
+    color: #000;
     font-weight: 700;
 }
 

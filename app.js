@@ -1,15 +1,8 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// Данные из config.py
-const SHEETS = [
-    "Пятерочка",
-    "Дикси",
-    "1-1 Склад",
-    "Спортмастер",
-    "Вкусвилл",
-    "Чижик"
-];
+// ─── Конфигурация (синхронизирована с config.py) ──────────────────────────────
+const SHEETS = ["Пятерочка", "Дикси", "1-1 Склад", "Спортмастер", "Вкусвилл", "Чижик"];
 
 const METERS = {
     "gvs": { name: "🔥 Горячая вода", unit: "м³" },
@@ -63,17 +56,16 @@ const TENANTS = {
     ],
 };
 
-// UI Элементы
+// ─── UI ───────────────────────────────────────────────────────────────────────
 const mainContent = document.getElementById("main-content");
 const screenTitle = document.getElementById("screen-title");
 const backBtn = document.getElementById("back-btn");
 const header = document.getElementById("header");
 
-// Состояние
-let currentTab = "readings"; // readings, tenants
+let currentTab = "readings";
 let historyStack = [];
 
-// Иконки брендов (для красоты)
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getBrandClass(name) {
     name = name.toLowerCase();
     if (name.includes("чижик")) return "brand-chizhik";
@@ -92,13 +84,10 @@ function getBrandInitial(name) {
     return name.charAt(0).toUpperCase();
 }
 
-// ─── Роутер ────────────────────────────────────────────────────────────────
+// ─── Роутер ───────────────────────────────────────────────────────────────────
 function navigateTo(renderFunc, title, params = {}, pushToHistory = true) {
-    if (pushToHistory) {
-        historyStack.push({ renderFunc, title, params });
-    }
+    if (pushToHistory) historyStack.push({ renderFunc, title, params });
 
-    // Прячем таб-бар, если мы глубже главного экрана
     const bottomNav = document.getElementById("bottom-nav");
     if (historyStack.length > 1) {
         bottomNav.style.display = "none";
@@ -131,30 +120,19 @@ backBtn.addEventListener("click", () => {
     }
 });
 
-// Табы
 document.querySelectorAll(".tab-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        const targetBtn = e.currentTarget;
-        targetBtn.classList.add("active");
-
-        currentTab = targetBtn.dataset.tab;
+        e.currentTarget.classList.add("active");
+        currentTab = e.currentTarget.dataset.tab;
         historyStack = [];
-
-        if (currentTab === "readings") {
-            navigateTo(renderObjectList, "Учёт показаний", { mode: 'readings' });
-        } else {
-            navigateTo(renderObjectList, "Учёт показаний", { mode: 'tenants' });
-        }
+        navigateTo(renderObjectList, "Учёт показаний", { mode: currentTab });
     });
 });
 
-tg.onEvent('backButtonClicked', () => {
-    backBtn.click();
-});
+tg.onEvent('backButtonClicked', () => backBtn.click());
 
-// ─── Экраны ───────────────────────────────────────────────────────────────
-
+// ─── Экран 1: список объектов ─────────────────────────────────────────────────
 function renderObjectList(container, params) {
     const list = document.createElement("div");
     list.className = "list-container";
@@ -162,21 +140,18 @@ function renderObjectList(container, params) {
     SHEETS.forEach(sheet => {
         const item = document.createElement("button");
         item.className = "list-item";
-
-        // Берем правильное имя главной секции для вкладки "Показания" и заголовков объектов в "Арендаторы"
-        let sheetTitle = MAIN_SECTIONS[sheet] || sheet;
+        const sheetTitle = MAIN_SECTIONS[sheet] || sheet;
 
         item.innerHTML = `
             <div class="brand-icon ${getBrandClass(sheet)}">${getBrandInitial(sheetTitle)}</div>
             <div class="title">${sheetTitle}</div>
             <div class="chevron">›</div>
         `;
-
         item.onclick = () => {
             if (params.mode === 'readings') {
-                navigateTo(renderMetersList, "Сведения: " + sheet, { sheet: sheet, tenantName: null });
+                navigateTo(renderMetersList, sheet + " — Счётчик", { sheet, tenantName: null });
             } else {
-                navigateTo(renderTenantsList, sheetTitle + " — Арендаторы", { sheet: sheet });
+                navigateTo(renderTenantsList, sheetTitle + " — Арендаторы", { sheet });
             }
         };
         list.appendChild(item);
@@ -184,217 +159,243 @@ function renderObjectList(container, params) {
     container.appendChild(list);
 }
 
-function renderMetersList(container, params) {
-    const { sheet, tenantName } = params;
-
-    const sectionLabel = document.createElement("div");
-    sectionLabel.className = "section-label";
-    sectionLabel.innerText = "СЧЁТЧИКИ";
-    container.appendChild(sectionLabel);
-
-    const list = document.createElement("div");
-    list.className = "list-container";
-
-    let meterKeys = [];
-    if (tenantName) {
-        const tenant = TENANTS[sheet].find(t => t.name === tenantName);
-        meterKeys = tenant ? tenant.meters : [];
-    } else {
-        meterKeys = Object.keys(METERS); // По умолчанию все для объекта
-    }
-
-    meterKeys.forEach(key => {
-        const meter = METERS[key];
-        const item = document.createElement("button");
-        item.className = "list-item";
-
-        // Разделяем иконку и название, например "⚡ Свет"
-        const parts = meter.name.split(" ");
-        const emoji = parts[0];
-        const namePart = parts.slice(1).join(" ");
-
-        item.innerHTML = `
-            <div class="icon">${emoji}</div>
-            <div class="title">${namePart}</div>
-            <div class="chevron">›</div>
-        `;
-
-        item.onclick = () => {
-            navigateTo(renderInputMenu, `${tenantName || sheet} — ${namePart}`, {
-                sheet: sheet,
-                tenantName: tenantName,
-                meterKey: key
-            });
-        };
-        list.appendChild(item);
-    });
-
-    const addBtn = document.createElement("button");
-    addBtn.className = "btn-secondary";
-    addBtn.innerText = "+ Добавить счётчик";
-    list.appendChild(addBtn);
-
-    container.appendChild(list);
-}
-
+// ─── Экран 2a: список арендаторов ─────────────────────────────────────────────
 function renderTenantsList(container, params) {
     const { sheet } = params;
     const tenants = TENANTS[sheet] || [];
 
-    const sectionLabel = document.createElement("div");
-    sectionLabel.className = "section-label";
-    sectionLabel.innerText = "АРЕНДАТОРЫ";
-    container.appendChild(sectionLabel);
+    const lbl = document.createElement("div");
+    lbl.className = "section-label";
+    lbl.innerText = "АРЕНДАТОРЫ";
+    container.appendChild(lbl);
 
     const list = document.createElement("div");
     list.className = "list-container";
 
     if (tenants.length === 0) {
         const empty = document.createElement("div");
-        empty.style.padding = "16px";
-        empty.style.color = "var(--hint-color)";
+        empty.style.cssText = "padding:16px;color:var(--hint-color)";
         empty.innerText = "📭 Арендаторы пока не добавлены";
         list.appendChild(empty);
     } else {
         tenants.forEach(t => {
             const item = document.createElement("button");
             item.className = "list-item";
-
             item.innerHTML = `
                 <div class="brand-icon brand-tenant">${getBrandInitial(t.name)}</div>
                 <div class="title">${t.name}</div>
                 <div class="chevron">›</div>
             `;
-
-            item.onclick = () => {
-                navigateTo(renderMetersList, "Сведения: " + t.name, { sheet: sheet, tenantName: t.name });
-            };
+            item.onclick = () =>
+                navigateTo(renderMetersList, t.name + " — Счётчик", { sheet, tenantName: t.name });
             list.appendChild(item);
         });
     }
+    container.appendChild(list);
+}
 
-    const addBtn = document.createElement("button");
-    addBtn.className = "btn-secondary";
-    addBtn.innerText = "+ Добавить арендатора";
-    list.appendChild(addBtn);
+// ─── Экран 2b: список счётчиков ───────────────────────────────────────────────
+function renderMetersList(container, params) {
+    const { sheet, tenantName } = params;
+
+    const lbl = document.createElement("div");
+    lbl.className = "section-label";
+    lbl.innerText = "СЧЁТЧИКИ";
+    container.appendChild(lbl);
+
+    const list = document.createElement("div");
+    list.className = "list-container";
+
+    let meterKeys = [];
+    if (tenantName) {
+        const tenant = (TENANTS[sheet] || []).find(t => t.name === tenantName);
+        meterKeys = tenant ? tenant.meters : [];
+    } else {
+        meterKeys = Object.keys(METERS);
+    }
+
+    meterKeys.forEach(key => {
+        const meter = METERS[key];
+        const item = document.createElement("button");
+        item.className = "list-item";
+        const [emoji, ...rest] = meter.name.split(" ");
+        item.innerHTML = `
+            <div class="icon">${emoji}</div>
+            <div class="title">${rest.join(" ")}</div>
+            <div class="chevron">›</div>
+        `;
+        item.onclick = () =>
+            navigateTo(renderPeriodInput, "Выберите период", { sheet, tenantName, meterKey: key });
+        list.appendChild(item);
+    });
 
     container.appendChild(list);
 }
 
-function renderInputMenu(container, params) {
+// ─── Экран 3: ввод периода ────────────────────────────────────────────────────
+function renderPeriodInput(container, params) {
     const { sheet, tenantName, meterKey } = params;
     const meter = METERS[meterKey];
+    const display = tenantName || (MAIN_SECTIONS[sheet] || sheet);
 
     const wrapper = document.createElement("div");
     wrapper.className = "input-container";
 
-    const title = document.createElement("h2");
-    title.className = "input-screen-title";
-    title.innerText = "Внесите показания";
-
-    // --- Поле периода ---
-    const periodGroup = document.createElement("div");
-    periodGroup.className = "input-group";
-    periodGroup.style.marginBottom = "16px";
-
-    const periodLabel = document.createElement("label");
-    periodLabel.className = "input-label";
-    periodLabel.innerText = "📅 Период (месяц 01–12)";
-    periodLabel.style.display = "block";
-    periodLabel.style.marginBottom = "6px";
-    periodLabel.style.color = "var(--hint-color)";
-    periodLabel.style.fontSize = "13px";
-
-    const periodInput = document.createElement("input");
-    periodInput.type = "number";
-    periodInput.className = "input-field";
-    periodInput.placeholder = "Введите номер месяца (01–12)";
-    periodInput.min = "1";
-    periodInput.max = "12";
-    periodInput.step = "1";
-
-    periodGroup.appendChild(periodLabel);
-    periodGroup.appendChild(periodInput);
-
-    // --- Поле показания ---
-    const inputGroup = document.createElement("div");
-    inputGroup.className = "input-group";
-
-    const valueLabel = document.createElement("label");
-    valueLabel.className = "input-label";
-    valueLabel.innerText = `🔩 Показания (${meter.unit})`;
-    valueLabel.style.display = "block";
-    valueLabel.style.marginBottom = "6px";
-    valueLabel.style.color = "var(--hint-color)";
-    valueLabel.style.fontSize = "13px";
+    wrapper.innerHTML = `
+        <div class="info-card">
+            <div class="info-row">📋 <span>${display}</span></div>
+            <div class="info-row">🔩 <span>${meter.name}</span></div>
+        </div>
+        <h2 class="input-screen-title">📅 Выберите период</h2>
+        <p class="input-hint">Введите номер месяца (от 01 до 12)</p>
+    `;
 
     const input = document.createElement("input");
     input.type = "number";
     input.className = "input-field";
-    input.placeholder = `Введите показания (${meter.unit})`;
-    input.step = "any";
+    input.placeholder = "Например: 05";
+    input.min = "1";
+    input.max = "12";
+    input.step = "1";
 
-    inputGroup.appendChild(valueLabel);
-    inputGroup.appendChild(input);
+    const btn = document.createElement("button");
+    btn.className = "btn-primary";
+    btn.innerText = "Далее →";
+    btn.disabled = true;
+    btn.style.marginTop = "16px";
 
-    wrapper.appendChild(title);
-    wrapper.appendChild(periodGroup);
-    wrapper.appendChild(inputGroup);
+    input.addEventListener("input", () => {
+        const v = parseInt(input.value, 10);
+        btn.disabled = !(v >= 1 && v <= 12);
+    });
 
+    btn.onclick = () => {
+        const v = parseInt(input.value, 10);
+        if (isNaN(v) || v < 1 || v > 12) {
+            tg.showAlert("Введите номер месяца от 01 до 12");
+            return;
+        }
+        const year = new Date().getFullYear();
+        const period = `${String(v).padStart(2, "0")}.${year}`;
+        navigateTo(renderValueInput, "Введите показания", { sheet, tenantName, meterKey, period });
+    };
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(btn);
     container.appendChild(wrapper);
 
-    // --- Telegram Main Button ---
-    tg.MainButton.text = "Передать показания";
-    tg.MainButton.color = "#000000";
-    tg.MainButton.textColor = "#FFFFFF";
-    tg.MainButton.hide();
+    setTimeout(() => input.focus(), 100);
+}
 
-    function checkReady() {
-        if (input.value.trim() !== '' && periodInput.value.trim() !== '') {
-            tg.MainButton.show();
-        } else {
-            tg.MainButton.hide();
-        }
-    }
+// ─── Экран 4: ввод показаний ──────────────────────────────────────────────────
+function renderValueInput(container, params) {
+    const { sheet, tenantName, meterKey, period } = params;
+    const meter = METERS[meterKey];
+    const display = tenantName || (MAIN_SECTIONS[sheet] || sheet);
 
-    input.addEventListener('input', checkReady);
-    periodInput.addEventListener('input', checkReady);
+    const wrapper = document.createElement("div");
+    wrapper.className = "input-container";
 
-    // Удаляем старый обработчик ПЕРЕД тем как создать новый
-    function _submitHandler() {
+    wrapper.innerHTML = `
+        <div class="info-card">
+            <div class="info-row">📋 <span>${display}</span></div>
+            <div class="info-row">🔩 <span>${meter.name}</span></div>
+            <div class="info-row">📅 <span>Период: <b>${period}</b></span></div>
+        </div>
+        <h2 class="input-screen-title">🔴 Внесите показания</h2>
+        <p class="input-hint">Введите значение (${meter.unit})</p>
+    `;
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.className = "input-field";
+    input.placeholder = `Показания в ${meter.unit}`;
+    input.step = "any";
+
+    const btn = document.createElement("button");
+    btn.className = "btn-primary";
+    btn.innerText = "Далее →";
+    btn.disabled = true;
+    btn.style.marginTop = "16px";
+
+    input.addEventListener("input", () => {
+        btn.disabled = input.value.trim() === "";
+    });
+
+    btn.onclick = () => {
         const val = parseFloat(input.value.replace(",", "."));
         if (isNaN(val)) {
-            tg.showAlert("Введите корректное число для показаний.");
+            tg.showAlert("Введите корректное числовое значение.");
             return;
         }
+        navigateTo(renderConfirm, "Подтверждение", { sheet, tenantName, meterKey, period, value: val });
+    };
 
-        const monthRaw = parseInt(periodInput.value, 10);
-        if (isNaN(monthRaw) || monthRaw < 1 || monthRaw > 12) {
-            tg.showAlert("Введите номер месяца от 01 до 12.");
-            return;
-        }
+    wrapper.appendChild(input);
+    wrapper.appendChild(btn);
+    container.appendChild(wrapper);
 
-        const currentYear = new Date().getFullYear();
-        const period = `${String(monthRaw).padStart(2, '0')}.${currentYear}`;
+    setTimeout(() => input.focus(), 100);
+}
+
+// ─── Экран 5: подтверждение ───────────────────────────────────────────────────
+function renderConfirm(container, params) {
+    const { sheet, tenantName, meterKey, period, value } = params;
+    const meter = METERS[meterKey];
+    const display = tenantName || (MAIN_SECTIONS[sheet] || sheet);
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "input-container";
+
+    wrapper.innerHTML = `
+        <h2 class="input-screen-title">❓ Вы уверены?</h2>
+        <div class="confirm-card">
+            <div class="confirm-row"><span class="confirm-label">📋 Объект / Арендатор</span><span class="confirm-value">${display}</span></div>
+            <div class="confirm-row"><span class="confirm-label">🔩 Счётчик</span><span class="confirm-value">${meter.name}</span></div>
+            <div class="confirm-row"><span class="confirm-label">📅 Период</span><span class="confirm-value">${period}</span></div>
+            <div class="confirm-row highlight"><span class="confirm-label">✏️ Значение</span><span class="confirm-value"><b>${value} ${meter.unit}</b></span></div>
+        </div>
+    `;
+
+    const btnRow = document.createElement("div");
+    btnRow.className = "confirm-btn-row";
+
+    const yesBtn = document.createElement("button");
+    yesBtn.className = "btn-yes";
+    yesBtn.innerText = "✅ Да";
+
+    const noBtn = document.createElement("button");
+    noBtn.className = "btn-no";
+    noBtn.innerText = "❌ Нет";
+
+    noBtn.onclick = () => {
+        historyStack = [];
+        navigateTo(renderObjectList, "Учёт показаний", { mode: currentTab });
+    };
+
+    yesBtn.onclick = () => {
+        yesBtn.disabled = true;
+        noBtn.disabled = true;
+        yesBtn.innerText = "⏳ Сохраняем...";
 
         const payload = {
             action: "submit_reading",
             sheet: sheet,
             tenantName: tenantName || null,
             meterKey: meterKey,
-            value: val,
+            value: value,
             period: period,
             source: tenantName ? "tenants" : "readings"
         };
 
-        tg.offEvent('mainButtonClicked', _submitHandler);
         tg.sendData(JSON.stringify(payload));
-    }
+    };
 
-    tg.offEvent('mainButtonClicked', _submitHandler);
-    tg.onEvent('mainButtonClicked', _submitHandler);
+    btnRow.appendChild(noBtn);
+    btnRow.appendChild(yesBtn);
+    wrapper.appendChild(btnRow);
+    container.appendChild(wrapper);
 }
 
-// Запуск начального экрана
+// ─── Старт ────────────────────────────────────────────────────────────────────
 navigateTo(renderObjectList, "Учёт показаний", { mode: 'readings' });
-
