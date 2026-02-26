@@ -389,6 +389,10 @@ function renderConfirm(container, params) {
         };
 
         tg.sendData(JSON.stringify(payload));
+        // Telegram должен закрыть WebApp после sendData,
+        // но на некоторых платформах нужен явный вызов close()
+        setTimeout(() => tg.close(), 300);
+
     };
 
     btnRow.appendChild(noBtn);
